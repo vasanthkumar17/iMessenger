@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04040F2D27CFC53300992412 /* DataBaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04040F2C27CFC53300992412 /* DataBaseManager.swift */; };
 		0421B2B127C0D6B90017F3E4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0421B2B027C0D6B90017F3E4 /* GoogleService-Info.plist */; };
 		04C3901627BE9A3600F77FE2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C3901527BE9A3600F77FE2 /* AppDelegate.swift */; };
 		04C3901827BE9A3600F77FE2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C3901727BE9A3600F77FE2 /* SceneDelegate.swift */; };
@@ -25,6 +26,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04040F2C27CFC53300992412 /* DataBaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataBaseManager.swift; sourceTree = "<group>"; };
 		0421B2B027C0D6B90017F3E4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		04C3901227BE9A3600F77FE2 /* Messenger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Messenger.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04C3901527BE9A3600F77FE2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -96,6 +98,7 @@
 				04C3901527BE9A3600F77FE2 /* AppDelegate.swift */,
 				04C3901727BE9A3600F77FE2 /* SceneDelegate.swift */,
 				04C3903E27BEADBA00F77FE2 /* Extensions.swift */,
+				04040F2C27CFC53300992412 /* DataBaseManager.swift */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -126,8 +129,8 @@
 		04C3902D27BE9AA200F77FE2 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				04C3903B27BEA82000F77FE2 /* LoginAndRegister */,
 				04C3901927BE9A3600F77FE2 /* ConversationsViewController.swift */,
+				04C3903B27BEA82000F77FE2 /* LoginAndRegister */,
 				04C3903327BE9B4200F77FE2 /* PhotoViewerViewController.swift */,
 				04C3903527BE9B5700F77FE2 /* VideoPlayerViewController.swift */,
 				04C3903727BE9B6900F77FE2 /* NewConversationViewController.swift */,
@@ -279,6 +282,7 @@
 				04C3903A27BE9B7900F77FE2 /* ProfileViewController.swift in Sources */,
 				04C3901827BE9A3600F77FE2 /* SceneDelegate.swift in Sources */,
 				04C3903427BE9B4200F77FE2 /* PhotoViewerViewController.swift in Sources */,
+				04040F2D27CFC53300992412 /* DataBaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -65,7 +65,7 @@ class LoginViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print("----> Login screen loaded")
         title = "Log In"
         view.backgroundColor = .white
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
@@ -125,14 +125,18 @@ class LoginViewController: UIViewController {
               }
         // firebase sign in
         
-        Auth.auth().signIn(withEmail: email, password: password, completion: { (authResult , error) in
+        Auth.auth().signIn(withEmail: email, password: password, completion: {[weak self] (authResult , error) in
             
+            guard let stronSelf = self else {
+                return
+            }
             guard let result = authResult,error == nil else {
                 print("Failed to login in user email address : \(email)")
                 return
             }
             let user = result.user
-            print("Logged in User--> \(user.email)")
+            print("Logged in User--> \(String(describing: user.email))")
+            stronSelf.navigationController?.dismiss(animated: true, completion: nil);
             
         })
     }
