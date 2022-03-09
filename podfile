@@ -1,7 +1,12 @@
 target 'Messenger' do
 
-pod 'Firebase/Core'
-pod 'Firebase/Auth'
-pod 'Firebase/Database'
+# FIREBASE
+
+    pod 'Firebase/Core'
+    pod 'Firebase/Auth'
+    pod 'Firebase/Database'
+
+# FACEBOOK
+    pod 'FBSDKLoginKit'
 
 end

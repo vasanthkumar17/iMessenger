@@ -7,6 +7,7 @@
 
 import UIKit
 import Firebase
+import FBSDKLoginKit
 
 class LoginViewController: UIViewController {
 
@@ -62,7 +63,13 @@ class LoginViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
         return button
     }()
-    
+    private let facebookLoginButton : FBLoginButton = {
+        let button = FBLoginButton()
+        button.permissions = ["email","public_profile"]
+        return button
+
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         print("----> Login screen loaded")
@@ -75,12 +82,14 @@ class LoginViewController: UIViewController {
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         emailField.delegate = self
         passwordField.delegate = self
+        facebookLoginButton.delegate = self
         
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
+        scrollView.addSubview(facebookLoginButton)
     }
     
     override func viewWillLayoutSubviews() {
@@ -105,6 +114,11 @@ class LoginViewController: UIViewController {
                                   y: passwordField.bottom+40,
                                   width: scrollView.width-60,
                                   height: 52)
+        facebookLoginButton.frame = CGRect(x: 30,
+                                  y: loginButton.bottom+40,
+                                  width: scrollView.width-60,
+                                  height: 52)
+        facebookLoginButton.frame.origin.y = loginButton.bottom+20
     }
     
     @objc private func didTapRegister()
@@ -161,3 +175,67 @@ extension LoginViewController : UITextFieldDelegate{
         return true
     }
 }
+
+ 
+extension LoginViewController : LoginButtonDelegate {
+    func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
+        // no operation..
+    }
+    
+    
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        guard let token = result?.token?.tokenString else{
+            print("---> user failed to log in with facebook")
+            return
+        }
+        
+        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me", parameters: ["fields":"email,name"],tokenString: token,version: nil, httpMethod: .get)
+        facebookRequest.start { _, result, error in
+            guard let result = result as? [String: Any],error == nil else {
+                print("failed to make facebook graph request")
+                return
+            }
+            print("--> result : \(result)")
+            let credential = FacebookAuthProvider.credential(withAccessToken: token)
+            Firebase.Auth.auth().signIn(with: credential) {[weak self] authResult, error in
+                guard let stronSelf = self else {
+                    return
+                }
+                guard  authResult != nil,error == nil else {
+                    if let error = error {
+                        print("---> facebook credential login failed...\(error.localizedDescription)")
+
+                    }
+                    return
+                }
+                print("---> successfully logged user in ")
+                stronSelf.navigationController?.dismiss(animated: true, completion: nil);
+            }
+            guard let userName = result["name"] as? String,
+                  let email = result["email"] as? String else {
+                      print("failed to get email and name from fb results")
+                      return
+                  }
+            let nameComponents = userName.components(separatedBy: " ")
+            guard nameComponents.count == 2 else {
+                return
+            }
+            let firstName = nameComponents[0]
+            let lastName = nameComponents[1]
+            DataBaseManager.shared.userExists(with: email) { exist in
+                if !exist
+                {
+                    DataBaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
+                                                                        lastName: lastName, emailAddress: email))
+                }
+                
+            }
+        }
+        
+    
+    }
+    
+    
+}
+    
+
