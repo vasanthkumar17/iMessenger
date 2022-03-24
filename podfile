@@ -8,5 +8,7 @@ target 'Messenger' do
 
 # FACEBOOK
     pod 'FBSDKLoginKit'
+# GOOGLE
+   pod 'GoogleSignIn'
 
 end
