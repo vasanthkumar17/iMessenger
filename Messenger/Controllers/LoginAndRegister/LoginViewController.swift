@@ -8,7 +8,7 @@
 import UIKit
 import Firebase
 import FBSDKLoginKit
-
+import GoogleSignIn
 class LoginViewController: UIViewController {
 
     private let scrollView: UIScrollView = {
@@ -69,10 +69,31 @@ class LoginViewController: UIViewController {
         return button
 
     }()
+    
+    private let googleLoginButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Google SignIn", for: .normal)
+        button.backgroundColor = .link
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 12
+        button.layer.masksToBounds = true
+        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
+        return button
 
+    }()
+
+    private var loginObserver: NSObjectProtocol?
     override func viewDidLoad() {
         super.viewDidLoad()
         print("----> Login screen loaded")
+        
+        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main, using: { [weak self] _ in
+            guard let strongSelf = self else{
+                return
+            }
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+        })
+        
         title = "Log In"
         view.backgroundColor = .white
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
@@ -80,6 +101,7 @@ class LoginViewController: UIViewController {
                                                             target: self,
                                                             action: #selector(didTapRegister))
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        googleLoginButton.addTarget(self, action: #selector(googleLoginTapped), for: .touchUpInside)
         emailField.delegate = self
         passwordField.delegate = self
         facebookLoginButton.delegate = self
@@ -90,8 +112,14 @@ class LoginViewController: UIViewController {
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
         scrollView.addSubview(facebookLoginButton)
+        scrollView.addSubview(googleLoginButton)
     }
     
+    deinit{
+        if let observer = loginObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         scrollView.frame = view.bounds
@@ -118,7 +146,10 @@ class LoginViewController: UIViewController {
                                   y: loginButton.bottom+40,
                                   width: scrollView.width-60,
                                   height: 52)
-        facebookLoginButton.frame.origin.y = loginButton.bottom+20
+        googleLoginButton.frame = CGRect(x: 30,
+                                  y: facebookLoginButton.bottom+40,
+                                  width: scrollView.width-60,
+                                  height: 52)
     }
     
     @objc private func didTapRegister()
@@ -128,6 +159,65 @@ class LoginViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
     
+    @objc private func googleLoginTapped(){
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+
+        // Create Google Sign In configuration object.
+        let config = GIDConfiguration(clientID: clientID)
+
+        // Start the sign in flow!
+        GIDSignIn.sharedInstance.signIn(with: config, presenting: self) { [unowned self] user, error in
+         
+          guard error == nil else {
+              if let error = error{
+                  print("Failed to sign in with Google: \(error.localizedDescription)");
+              }
+            return
+          }
+//            guard let user = user else
+//            {
+//                print("---> error in google sign user")
+//                return
+//            }
+            
+            print("Did Sign in with Google : \(String(describing: user))")
+            
+            guard let email = user?.profile?.email,
+                  let firstName = user?.profile?.givenName,
+                  let lastName = user?.profile?.familyName else {
+                      return
+                  }
+            
+            DataBaseManager.shared.userExists(with: email) { exists in
+                if !exists{
+                    //insert to database
+                    DataBaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
+                                                                        lastName: lastName,
+                                                                        emailAddress: email))
+                }
+            }
+            
+          guard
+            let authentication = user?.authentication,
+            let idToken = authentication.idToken
+          else {
+              print("Missing Authentication object off of google user.")
+            return
+          }
+          let credential = GoogleAuthProvider.credential(withIDToken: idToken,
+                                                         accessToken: authentication.accessToken)
+
+         print("-----> creditional :",credential)
+            Firebase.Auth.auth().signIn(with: credential) { authResult, error in
+                guard authResult != nil,error == nil else{
+                    print("failed to log in with google credentials.")
+                    return
+                }
+                print("successfully signed in with google cred .")
+                NotificationCenter.default.post(name: .didLogInNotification, object: nil)
+            }
+        }
+    }
     @objc private func loginButtonTapped(){
         emailField.resignFirstResponder()
         passwordField.resignFirstResponder()
@@ -141,7 +231,7 @@ class LoginViewController: UIViewController {
         
         Auth.auth().signIn(withEmail: email, password: password, completion: {[weak self] (authResult , error) in
             
-            guard let stronSelf = self else {
+            guard let strongSelf = self else {
                 return
             }
             guard let result = authResult,error == nil else {
@@ -150,7 +240,7 @@ class LoginViewController: UIViewController {
             }
             let user = result.user
             print("Logged in User--> \(String(describing: user.email))")
-            stronSelf.navigationController?.dismiss(animated: true, completion: nil);
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil);
             
         })
     }
